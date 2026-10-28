@@ -1,4 +1,3 @@
-
 import streamlit as st
 from supabase import create_client
 
@@ -21,9 +20,11 @@ def connecter_supabase():
     cle = st.secrets["SUPABASE_KEY"]
     return create_client(url, cle)
 
+
 # Normalisation du texte
 def normaliser(texte):
     return " ".join(texte.strip().lower().split())
+
 
 # Recherche d'une réponse dans Supabase
 def rechercher_reponse(question):
@@ -41,6 +42,7 @@ def rechercher_reponse(question):
         return resultat.data[0]["reponse"]
 
     return None
+
 
 # Traitement de plusieurs phrases
 def chatbot(texte):
@@ -62,6 +64,7 @@ def chatbot(texte):
 
     return resultats
 
+
 # Application du chatbot
 try:
     supabase = connecter_supabase()
@@ -70,12 +73,13 @@ try:
     texte = st.text_area(
         "Message du client",
         placeholder=(
-            "Ex. : Entrer des commentaires ici..."
+            "Ex. : n'effectue pas d'action de fidélisation; "
+            "ne manifeste pas l'empathie"
         ),
         height=120
     )
 
-    if st.button("Obtenir les réponses", type="primary"):
+    if st.button("Obtenir la réponse", type="primary"):
         if not texte.strip():
             st.warning("Saisis d'abord un message.")
         else:
@@ -83,23 +87,35 @@ try:
                 with st.spinner("Recherche des réponses..."):
                     resultats = chatbot(texte)
 
-                st.subheader("Résultats")
+                # Regrouper toutes les réponses trouvées
+                reponses = [
+                    resultat["reponse"].strip()
+                    for resultat in resultats
+                    if resultat["reponse"]
+                    and resultat["reponse"].strip()
+                ]
 
-                for resultat in resultats:
-                    st.markdown(
-                        f"**Phrase saisie :** {resultat['question']}"
+                # Afficher un seul bloc de réponses
+                st.subheader("Réponse du chatbot")
+
+                if reponses:
+                    reponse_finale = " ; ".join(reponses)
+
+                    st.text_area(
+                        "Réponse",
+                        value=reponse_finale,
+                        height=180
                     )
 
-                    if resultat["reponse"] is not None:
-                        st.success(
-                            f"Réponse : {resultat['reponse']}"
+                    if st.button("Copier la réponse"):
+                        st.code(reponse_finale)
+                        st.info(
+                            "Sélectionne le texte ci-dessus pour le copier."
                         )
-                    else:
-                        st.warning(
-                            "Phrase non trouvée dans la base de données."
-                        )
-
-                    st.divider()
+                else:
+                    st.warning(
+                        "Aucune réponse trouvée dans la base de données."
+                    )
 
             except Exception as erreur:
                 st.error("Erreur lors de la recherche.")
