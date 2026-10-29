@@ -1,3 +1,4 @@
+
 import streamlit as st
 from supabase import create_client
 
@@ -99,7 +100,7 @@ try:
                 st.subheader("Réponse du chatbot")
 
                 if reponses:
-                    reponse_finale = " ; ".join(reponses)
+                    reponse_finale = "; ".join(reponses)
 
                     st.text_area(
                         "Réponse",
